@@ -3,12 +3,14 @@ crp <- colorRampPalette(c("red",
                           "green",
                           "blue"))
 
+
+
 library(extrafont)
 ## font_import()
 loadfonts()
 ggplot(dataAll) +
     geom_line(aes(year, value, group = Industry, colour = Industry, linetype = Industry)) +
-    theme_bw(base_size = 12) +
+    theme_bw() +
     scale_color_manual(values=crp(length(unique(dataAll$Industry)))) + 
     scale_linetype_manual(values=rep(c("solid", "dotdash", "dashed"), 4)) +
     scale_y_continuous(labels = function(x) format(x, big.mark = ",")) +
@@ -20,7 +22,7 @@ ggplot(dataAll) +
 
 ggplot(dataCon) +
     geom_line(aes(year, value, group = Industry, colour = Industry, linetype = Industry)) +
-    theme_bw(base_size = 12) +
+    theme_bw() +
     scale_color_manual(values=crp(length(unique(dataCon$Industry)))) + 
     scale_linetype_manual(values=rep(c("solid", "dotdash", "dashed"), 4)) +
     scale_y_continuous(labels = function(x) format(x, big.mark = ",")) +

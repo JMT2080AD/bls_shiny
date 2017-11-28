@@ -41,9 +41,8 @@ payloadInit <- function(area, industry){
               area      = area,
               datatype  = "4",
               size      = "0",
-              ownership = "5",
-              industry  = industry)
-    iden <- paste(c("EN", iden), collapse = "")
+              ownership = "5")
+    paste0(paste(c("EN", iden), collapse = ""), industry)
 }
 
 retrievePayload <- function(payVec, regKey){
@@ -66,11 +65,29 @@ areas <- files[[2]][grepl(", Washington", area_title) | area_title == "Washingto
 payloads <- sapply(industries, function(industry){
     sapply(areas, function(area, industry){
         payloadInit(area, industry)
-    }, industry = i)
+    }, industry = industry)
 })
 
-dataAll <- retrievePayload(payloads, regKey)
+## dataAll <- lapply(payloads, retrievePayload, regKey = regKey)
+## saveRDS(dataAll, "./data_output/payload.rds")
+
+dataAll <- readRDS("./data_output/payload.rds")
+dataAll[grepl("REQUEST_NOT_PROCESSED", dataAll)] <- NULL
+
+dataAll <- lapply(dataAll,
+                  gsub,
+                  pattern = ".*\"Results\":\\{\n\"series\":\n\\[",
+                  replacement = "")
+
+dataAll <- lapply(dataAll,
+                  gsub,
+                  pattern = "\\]\n\\}\\}$",
+                  replacement = "")
+
+dataAll <- gsub(",$", "", paste0(paste0("    ", dataAll, ","), collapse = "\n"))
+dataAll <- paste0("{\"Results\":{\n\"series\":[\n", dataAll, "]\n}}", collapse = "")
 
 con <- file("./data_output/payload.json")
-write(dataAll,con)
-close.file()
+write(dataAll, con) 
+close(con)
+
