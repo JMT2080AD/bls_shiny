@@ -37,12 +37,17 @@ selectGeoid <- function(x, y){
     if(is.null(x)){
         return(53000)
     }
-    counties$geoid[st_intersects(counties, st_point(c(x, y)), sparse = F)]
+    geoid_select <- counties$geoid[st_intersects(counties, st_point(c(x, y)), sparse = F)]
+    if(length(geoid_select) == 0){
+        return(53000)
+    }
+    return(geoid_select)
+
 }
 
-jobPlot <- function(geoid){
-    countyName <- unique(dat[area_fips == geoid & periodName == "Annual"]$area_title)
-    ggplot(dat[area_fips == geoid & periodName == "Annual",]) +
+jobPlot <- function(geoid_select){
+    countyName <- dat[area_fips == geoid_select & periodName == "Annual", area_title, by = area_title]
+    ggplot(dat[area_fips == geoid_select & periodName == "Annual",]) +
         geom_line(aes(year, value, group = industry_title, colour = industry_title, linetype = industry_title)) +
         theme_bw() +
         scale_color_manual(values=crp(length(unique(dat$industry_title)))) + 
@@ -55,8 +60,8 @@ jobPlot <- function(geoid){
 }
 
 washMap <- function(geoid_select){
-    if(is.null(geoid_select)){
-        countyName <- "No county selected"
+    if(geoid_select == 53000){
+        countyName <- "No County Selected"
     }else{
         countyName <- unique(dat[area_fips == geoid_select & periodName == "Annual"]$area_title)
     }
@@ -82,25 +87,63 @@ washMap <- function(geoid_select){
               axis.ticks       = eb)
 }
 
-## run server
 ui <- fluidPage(
     fluidRow(
-        column(6, plotOutput("map_plot",  click = "maplocation")),
+        column(6, plotOutput("map_plot",  click = "click_plot")),
         column(6, plotOutput("line_plot"))
        ),
     fluidRow(verbatimTextOutput("info"))
 )
 
-server <- function(input, output){
-    output$map_plot <- renderPlot(
-        washMap(selectGeoid(input$maplocation$x, input$maplocation$y))
+server <- function(input, output, session){
+    session$onSessionEnded(stopApp)
+
+    start <- reactiveValues(
+        state = 0,
+        last.click.x = 0,
+        last.click.y = 0
     )
-    output$line_plot <- renderPlot(
-        jobPlot(selectGeoid(input$maplocation$x, input$maplocation$y))
-    )
-    output$info <- renderText(
-        paste(selectGeoid(input$maplocation$x, input$maplocation$y))
-    )
+
+    geoid_select      <- reactive({selectGeoid(input$click_plot$x, input$click_plot$y)})
+    geoid_select_last <- reactive({selectGeoid(start$last.click.x, start$last.click.y)})
+
+    observeEvent(input$click_plot, {
+        if(length(input$click_plot$x) == 0){
+            start$state <- 0
+        }else{
+            start$state <- 1
+        }
+    })
+    
+    output$map_plot <- renderPlot({
+        if(start$state == 1){
+            if(length(input$click_plot$x) != 0){
+                start$last.click.x <- input$click_plot$x
+                start$last.click.y <- input$click_plot$y
+                return(washMap(geoid_select()))
+            }else{
+                return(washMap(geoid_select_last()))
+            }
+        }
+        if(start$state == 0){
+            return(washMap(53000))
+        }
+    })
+
+    output$line_plot <- renderPlot({
+        if(start$state == 1){
+            if(length(input$click_plot$x) != 0){
+                start$last.click.x <- input$click_plot$x
+                start$last.click.y <- input$click_plot$y
+                return(jobPlot(geoid_select()))
+            }else{
+                return(jobPlot(geoid_select_last()))
+            }
+        }
+        if(start$state == 0){
+            return(jobPlot(53000))
+        }
+    })
 }
 
 shinyApp(ui, server)
