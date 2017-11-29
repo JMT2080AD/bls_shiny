@@ -5,6 +5,6 @@ account: jmt2080ad
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 241461
-bundleId: 1103265
+bundleId: 1104525
 url: https://jmt2080ad.shinyapps.io/bls_shiny/
-when: 1511934478.84832
+when: 1511976000.95299
