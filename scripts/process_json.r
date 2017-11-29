@@ -37,7 +37,8 @@ areas <- area[grepl(", Washington", area_title) | area_title == "Washington -- S
 dat[,':='(year = as.numeric(as.character(year)),
           period = as.character(period),
           periodName = as.character(periodName),
-          value = as.numeric(as.character(value)))]
+          value = as.numeric(as.character(value)),
+          industry_title = gsub("^[0-9]+ ", "", industry_title))]
 
 ## write out rds
 saveRDS(dat, "./data_output/washington_qcew.rds")

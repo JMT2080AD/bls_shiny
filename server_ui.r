@@ -42,21 +42,22 @@ selectGeoid <- function(x, y){
         return(53000)
     }
     return(geoid_select)
-
 }
 
 jobPlot <- function(geoid_select){
     countyName <- dat[area_fips == geoid_select & periodName == "Annual", area_title, by = area_title]
     ggplot(dat[area_fips == geoid_select & periodName == "Annual",]) +
         geom_line(aes(year, value, group = industry_title, colour = industry_title, linetype = industry_title)) +
-        theme_bw() +
-        scale_color_manual(values=crp(length(unique(dat$industry_title)))) + 
-        scale_linetype_manual(values=rep(c("solid", "dotdash", "dashed"), 4)) +
+        scale_color_manual(name = "Industry Group", values = crp(length(unique(dat$industry_title)))) + 
+        scale_linetype_manual(name = "Industry Group", values = rep(c("solid", "dotdash", "dashed"), 4)) +
         labs(title = "Average Weekly Income",
              subtitle = paste("All Industry Groups Average Weekly Income -",  countyName),
              caption = "Source: Bureau of Labor Statistics",
              x = "Year",
-             y = "Average Weekly Income in Dollars")
+             y = "Average Weekly Income in Dollars") + 
+        theme_bw(base_size = 12) +
+        theme(axis.title.x = element_blank())
+
 }
 
 washMap <- function(geoid_select){
@@ -69,19 +70,19 @@ washMap <- function(geoid_select){
     ggplot() +
         geom_polygon(data = counties.points[geoid != geoid_select,],
                      aes(x, y, group = name),
-                     fill = "white",
+                     fill = "grey90",
                      color = "black") +
         geom_polygon(data = counties.points[geoid == geoid_select,],
                      aes(x, y, group = name),
-                     fill = "grey",
+                     fill = "darkgrey",
                      color = "black") + 
         coord_equal() +
         ggtitle(countyName) + 
         guides(fill = F) +
-        theme(plot.title       = element_text(hjust = 0.5),
+        theme(plot.title       = element_text(size = 12, hjust = 0.5),
               panel.border     = eb,
               panel.grid       = eb,
-              panel.background = eb,
+              panel.background = element_rect(fill = "white", color = "black"),
               axis.title       = eb,
               axis.text        = eb,
               axis.ticks       = eb)
@@ -89,10 +90,13 @@ washMap <- function(geoid_select){
 
 ui <- fluidPage(
     fluidRow(
-        column(6, plotOutput("map_plot",  click = "click_plot")),
-        column(6, plotOutput("line_plot"))
-       ),
-    fluidRow(verbatimTextOutput("info"))
+        column(5, tags$div(class = "header", checked = NA,
+                           tags$h4("Click the map below to query that county's\naverage weekly wages by job class.")))
+    ),
+    fluidRow(
+        column(5, plotOutput("map_plot",  click = "click_plot")),
+        column(7, plotOutput("line_plot"))
+    )
 )
 
 server <- function(input, output, session){
