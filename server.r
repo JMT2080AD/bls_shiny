@@ -26,7 +26,7 @@ dat <- readRDS("./data_output/washington_qcew.rds")
 
 ## build color ramp palette
 crp <- colorRampPalette(c("red",
-                          "organge",
+                          "orange",
                           "green",
                           "blue"))
 
