@@ -26,7 +26,7 @@ dat <- readRDS("./data_output/washington_qcew.rds")
 
 ## build color ramp palette
 crp <- colorRampPalette(c("red",
-                          "yellow",
+                          "organge",
                           "green",
                           "blue"))
 
@@ -48,7 +48,7 @@ jobPlot <- function(geoid_select){
     ggplot(dat[area_fips == geoid_select & periodName == "Annual",]) +
         geom_line(aes(year, value, group = industry_title, colour = industry_title, linetype = industry_title)) +
         scale_color_manual(name = "Industry Group", values = crp(length(unique(dat$industry_title)))) + 
-        scale_linetype_manual(name = "Industry Group", values = rep(c("solid", "dotdash", "dashed"), 4)) +
+        scale_linetype_manual(name = "Industry Group", values = rep(c("solid", "dotdash", "dashed", "dotted"), 3)) +
         labs(title = "Average Weekly Income",
              subtitle = paste("All Industry Groups Average Weekly Income -",  countyName),
              caption = "Source: Bureau of Labor Statistics",
